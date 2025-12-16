@@ -6,7 +6,7 @@
     <title>Login - Salesforce</title>
   </head>
   <body>
-    <h2>Login</h2>
+    <h2>Logins</h2>
     <label for="user_name">Usuario:</label>
     <input
       type="text"
@@ -29,86 +29,60 @@
         "https://alephholding--idp.sandbox.my.site.com/services/apexrest/code/extraction";
 
       // Performs the code exchange
-      function doCodeExchange(authorizeResponse) {
-        // Perform Code Exchange
-        // Get Access Token
-        var client = new XMLHttpRequest();
-        client.open(
-          "POST",
-          authorizeResponse.sfdc_community_url + "/services/oauth2/token",
-          true
-        );
-        client.setRequestHeader(
-          "Content-Type",
-          "application/x-www-form-urlencoded"
-        );
-        client.send(
-          "code=" +
-            authorizeResponse.code +
-            "&grant_type=authorization_code&client_id=" +
-            clientId +
-            "&redirect_uri=" +
-            redirectURL
-        );
-        client.onreadystatechange = function () {
-          if (this.readyState == 3) {
-            response = JSON.parse(client.response);
-            getUserInfo(
-              response.access_token,
-              response.sfdc_community_url
-            );
-          }
-        };
-      }
+      // Performs the code exchange
+function doCodeExchange(authorizeResponse) {
+   //Perform Code Exchange
+   //Get Access Token
+   var client = new XMLHttpRequest();
+   client.open("POST", authorizeResponse.sfdc_community_url + "/services/oauth2/token", true);
+   client.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+   client.send("code=" + authorizeResponse.code + "&grant_type=authorization_code&client_id=" + clientId + "&redirect_uri=" + redirectURL);
+   client.onreadystatechange = function() {
+       if(this.readyState == 3) {
+           response = JSON.parse(client.response);
+           getUserInfo(response.access_token, response.sfdc_community_url)
+       }
+   }
+}
 
-      // Gets User Info
-      function getUserInfo(accessToken, userInfoBaseURL) {
-        var client = new XMLHttpRequest();
-        client.open("GET", userInfoBaseURL + "/services/oauth2/userinfo", true);
-        client.setRequestHeader("Content-Type", "application/json");
-        client.setRequestHeader("Authorization", "Bearer " + accessToken);
-        client.send();
-        client.onreadystatechange = function () {
-          if (this.readyState == 3) {
-            response = JSON.parse(client.response);
-            response.access_token = accessToken;
-            document.getElementById("json").textContent = JSON.stringify(
-              response,
-              undefined,
-              2
-            );
-            document.getElementById("results").style.display = "block";
-          }
-        };
-      }
+// Gets User Info
+function getUserInfo(accessToken, userInfoBaseURL) {
+   var client = new XMLHttpRequest();
+   client.open("GET", userInfoBaseURL + "/services/oauth2/userinfo", true);
+   client.setRequestHeader("Content-Type", "application/json");
+   client.setRequestHeader("Authorization", "Bearer " + accessToken);
+   client.send();
+   client.onreadystatechange = function() {
+       if(this.readyState == 3) {
+           response = JSON.parse(client.response);
+           response.access_token = accessToken;
+           document.getElementById("json").textContent = JSON.stringify(response, undefined, 2);
+           document.getElementById("results").style.display="block";
+       }
+   }
+}
 
-      // Starts the Login Process
-      function startLogin() {
-        var username = document.getElementById("user_name").value;
-        var password = document.getElementById("password").value;
-        var encodedUNP = btoa(username + ":" + password);
-        var client = new XMLHttpRequest();
-        client.open("POST", baseURL + "/services/oauth2/authorize", true);
-        client.setRequestHeader("Auth-Request-Type", "Named-User");
-        client.setRequestHeader(
-          "Content-Type",
-          "application/x-www-form-urlencoded"
-        );
-        client.setRequestHeader("Authorization", "Basic " + encodedUNP);
-        client.send(
-          "response_type=code_credentials&client_id=" +
-            clientId +
-            "&redirect_uri=" +
-            redirectURL
-        );
-        client.onreadystatechange = function () {
-          if (this.readyState == 3) {
-            response = JSON.parse(client.response);
-            doCodeExchange(response);
-          }
-        };
-        return false;
-      }
+//Starts the Login Process
+function startLogin() {
+   var username = document.getElementById('user_name').value;
+   var password = document.getElementById('password').value;
+  
+   var encodedUNP = btoa(username + ':' + password);
+   var client = new XMLHttpRequest();
+  
+   client.open("POST", baseURL + "/services/oauth2/authorize", true);
+   client.setRequestHeader("Auth-Request-Type", "Named-User");
+   client.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+   client.setRequestHeader("Authorization", "Basic " + encodedUNP);
+   client.send("response_type=code_credentials&client_id=" + clientId + "&redirect_uri=" + redirectURL);
+   client.onreadystatechange = function() {
+       if(this.readyState == 3) {
+           response = JSON.parse(client.response);
+           doCodeExchange(response);
+       }
+   }
+   return false;
+}   
     </script>
   </body>
 </html>
